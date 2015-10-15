@@ -24,12 +24,27 @@
       setInterval(this.loadCommentsFromServer, this.props.pollInterval);
     },
 
+    handleCommentFormSubmit: function(comment){
+      $.ajax({
+        url: this.props.url,
+        dataType: 'json',
+        type: "POST",
+        data: comment,
+        success: function(data){
+          this.setState({data: data})
+        }.bind(this),
+        error: function(xhr, status, err){
+          console.error(this.props.url, status, err.toString());
+        }.bind(this)
+      });
+    },
+
     render: function(){
       return(
         <div className="commentBox">
           <h2>Comment box</h2>
           <CommentList data={this.state.data} />
-          <CommentForm />
+          <CommentForm handleCommentFormSubmit={this.handleCommentFormSubmit} />
         </div>
       );
     }
@@ -54,11 +69,27 @@ var CommentList = React.createClass({
 });
 
 var CommentForm = React.createClass({
+  handleCommentSubmit: function(e){
+    e.preventDefault();
+    var author = this.refs.author.value;
+    var text = this.refs.text.value;
+
+    if(!author || !text)
+      return;
+
+    this.props.handleCommentFormSubmit({author: author, text: text});
+
+    this.refs.author.value = "";
+    this.refs.text.value = "";
+  },
+
   render: function(){
     return(
-      <div className="commentForm">
-          Hello, Im a comment form
-      </div>
+        <form className="commentForm" onSubmit={this.handleCommentSubmit}>
+          <input type="text" placeholder="Your name" ref="author" />
+          <input type="text" placeholder="Your views" ref="text" />
+          <input type="submit" value="Post" />
+        </form>
     );
   }
 });
